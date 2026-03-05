@@ -1,0 +1,23 @@
+[Unit]
+Description=Remna Node Agent (problem-first telemetry)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=remna-agent
+Group=remna-agent
+WorkingDirectory=/opt/remna-agent
+EnvironmentFile=/etc/remna-agent/.env
+ExecStart=/opt/remna-agent/.venv/bin/python /opt/remna-agent/agent.py
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/remna-agent/spool
+ReadOnlyPaths=/var/log/remnanode
+
+[Install]
+WantedBy=multi-user.target
