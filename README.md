@@ -69,3 +69,37 @@ Collector should validate each incoming event against `contracts/event.schema.js
 
 ## Current Contract Version
 - `schema_version`: `1.0`
+
+## Installer
+Install/update agent to `/opt/remna-agent` and restart service:
+
+```bash
+sudo bash ./install.sh
+```
+
+Install via one-liner (`curl | bash`) from GitHub:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MrStilex/node_agent/main/install-remote.sh | sudo bash
+```
+
+Optional:
+- install from another branch:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MrStilex/node_agent/main/install-remote.sh | sudo REPO=MrStilex/node_agent BRANCH=dev bash
+```
+
+Options via env:
+- `TARGET_DIR` (default `/opt/remna-agent`)
+- `SERVICE_NAME` (default `remna-agent`)
+- `AGENT_USER` (default `remna-agent`)
+- `AGENT_GROUP` (default `remna-agent`)
+- `PYTHON_BIN` (default `python3`)
+
+Installer behavior:
+- creates system user/group if missing
+- deploys code to target dir (keeps existing `.env`)
+- creates `.venv`
+- writes `/etc/systemd/system/remna-agent.service`
+- runs `systemctl daemon-reload && systemctl restart`
