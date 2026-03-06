@@ -16,6 +16,11 @@ SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 AUTO_START="${AUTO_START:-1}"
 FORCE_WRITE_ENV="${FORCE_WRITE_ENV:-0}"
+REPO_OWNER="${REPO_OWNER:-MrStilex}"
+REPO_NAME="${REPO_NAME:-node_agent}"
+REPO_REF="${REPO_REF:-main}"
+RAW_BASE_URL="${RAW_BASE_URL:-https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/$REPO_REF}"
+BOOTSTRAP_DIR=""
 
 log() {
   printf '[install] %s\n' "$*"
@@ -26,6 +31,38 @@ need_cmd() {
     echo "Required command not found: $1" >&2
     exit 1
   }
+}
+
+download_file() {
+  local src="$1"
+  local dst="$2"
+
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$src" -o "$dst"
+    return 0
+  fi
+
+  if command -v wget >/dev/null 2>&1; then
+    wget -qO "$dst" "$src"
+    return 0
+  fi
+
+  echo "Neither curl nor wget is available" >&2
+  exit 1
+}
+
+prepare_sources() {
+  if [ -f "$SRC_DIR/agent.py" ] && [ -f "$SRC_DIR/requirements.txt" ] && [ -f "$SRC_DIR/remna-agent.service" ] && [ -f "$SRC_DIR/.env.example" ]; then
+    return 0
+  fi
+
+  BOOTSTRAP_DIR="$(mktemp -d)"
+  SRC_DIR="$BOOTSTRAP_DIR"
+  log "Downloading installer payload from $RAW_BASE_URL"
+  download_file "$RAW_BASE_URL/agent.py" "$SRC_DIR/agent.py"
+  download_file "$RAW_BASE_URL/requirements.txt" "$SRC_DIR/requirements.txt"
+  download_file "$RAW_BASE_URL/remna-agent.service" "$SRC_DIR/remna-agent.service"
+  download_file "$RAW_BASE_URL/.env.example" "$SRC_DIR/.env.example"
 }
 
 ensure_venv_support() {
@@ -186,12 +223,17 @@ main() {
     exit 1
   fi
 
+  prepare_sources
   ensure_user_group
   install_files
   write_env_overrides
   setup_venv
   setup_log_access
   manage_service
+
+  if [ -n "$BOOTSTRAP_DIR" ] && [ -d "$BOOTSTRAP_DIR" ]; then
+    rm -rf "$BOOTSTRAP_DIR"
+  fi
 
   log "Done"
   log "Env file: $ENV_FILE"

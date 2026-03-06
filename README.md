@@ -13,11 +13,24 @@ Problem-first node telemetry agent for Remnawave/Xray.
 - `requirements.txt`
 - `.env.example`
 - `remna-agent.service`
+- `install.sh`
+
+## One-Line Install
+```bash
+curl -fsSL https://raw.githubusercontent.com/MrStilex/node_agent/main/install.sh | \
+sudo NODE_ID=fi-1 \
+INGEST_URL=https://logs.lalala001.ru/ingest \
+INGEST_TOKEN=replace_me \
+FORCE_WRITE_ENV=1 \
+bash
+```
+
+If `curl` is unavailable, the same works with `wget -qO- ... | sudo ... bash`.
 
 ## Install (Ubuntu 24.04)
 ```bash
 sudo mkdir -p /opt/remna-agent /opt/remna-agent/spool
-sudo cp agent.py requirements.txt .env.example /opt/remna-agent/
+sudo cp agent.py requirements.txt .env.example install.sh /opt/remna-agent/
 sudo cp .env.example /opt/remna-agent/.env
 
 cd /opt/remna-agent
@@ -57,7 +70,7 @@ All supported keys are listed in `.env.example`.
 You can also let the installer create `.env` directly in `/opt/remna-agent` with your values:
 ```bash
 sudo NODE_ID=fi-1 \
-  INGEST_URL=https://stats.example.com/ingest \
+  INGEST_URL=https://logs.lalala001.ru/ingest \
   INGEST_TOKEN=replace_me \
   FORCE_WRITE_ENV=1 \
   bash install.sh
