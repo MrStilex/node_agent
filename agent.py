@@ -180,6 +180,14 @@ def sha1_hex(s: str) -> str:
     return hashlib.sha1(s.encode("utf-8", errors="replace")).hexdigest()
 
 
+def ensure_event_fields(event: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(event)
+    event_type = normalized.get("event_type")
+    if event_type and "event" not in normalized:
+        normalized["event"] = event_type
+    return normalized
+
+
 class SQLiteSpool:
     def __init__(self, path: Path, max_events: int, drop_policy: str) -> None:
         self.path = path
@@ -588,6 +596,7 @@ class SenderThread(threading.Thread):
                 time.sleep(2)
 
     def _send(self, events: list[dict[str, Any]]) -> bool:
+        normalized_events = [ensure_event_fields(event) for event in events]
         headers = {
             "Authorization": f"Bearer {self.cfg.ingest_token}",
             "Content-Type": "application/json",
@@ -596,7 +605,7 @@ class SenderThread(threading.Thread):
             resp = self.session.post(
                 self.cfg.ingest_url,
                 headers=headers,
-                data=json.dumps(events, ensure_ascii=True),
+                data=json.dumps(normalized_events, ensure_ascii=True),
                 timeout=(3.05, self.cfg.request_timeout_sec),
             )
             if 200 <= resp.status_code < 300:
@@ -604,8 +613,13 @@ class SenderThread(threading.Thread):
                 return True
             logging.warning("Ingest returned status=%s body=%s", resp.status_code, resp.text[:300])
             return False
-        except requests.RequestException:
-            logging.exception("HTTP send exception")
+        except requests.RequestException as exc:
+            logging.warning(
+                "Unable to send logs to %s: %s (batch=%d)",
+                self.cfg.ingest_url,
+                exc,
+                len(events),
+            )
             return False
 
 
@@ -747,12 +761,13 @@ class Agent:
             self.threads.append(docker_reader)
 
     def _enqueue(self, event: dict[str, Any]) -> None:
-        ok = self.spool.enqueue(event)
+        normalized_event = ensure_event_fields(event)
+        ok = self.spool.enqueue(normalized_event)
         if not ok:
             logging.error(
                 "Spool full, event dropped by policy=%s type=%s",
                 self.cfg.spool_drop_policy,
-                event.get("event_type"),
+                normalized_event.get("event_type"),
             )
 
     def _handle_access_line(self, line: str) -> None:

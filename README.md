@@ -16,9 +16,9 @@ Problem-first node telemetry agent for Remnawave/Xray.
 
 ## Install (Ubuntu 24.04)
 ```bash
-sudo mkdir -p /opt/remna-agent /etc/remna-agent /var/lib/remna-agent/spool
-sudo cp agent.py requirements.txt /opt/remna-agent/
-sudo cp .env.example /etc/remna-agent/.env
+sudo mkdir -p /opt/remna-agent /opt/remna-agent/spool
+sudo cp agent.py requirements.txt .env.example /opt/remna-agent/
+sudo cp .env.example /opt/remna-agent/.env
 
 cd /opt/remna-agent
 python3 -m venv .venv
@@ -29,7 +29,7 @@ pip install -r requirements.txt
 ## Create service user
 ```bash
 sudo useradd --system --no-create-home --shell /usr/sbin/nologin remna-agent || true
-sudo chown -R remna-agent:remna-agent /var/lib/remna-agent
+sudo chown -R remna-agent:remna-agent /opt/remna-agent
 ```
 
 ## Grant log read access (required)
@@ -45,7 +45,7 @@ sudo setfacl -d -m u:remna-agent:r /var/log/remnanode
 Option B (group-based via logrotate create), adjust your logrotate policy accordingly.
 
 ## Configure
-Edit `/etc/remna-agent/.env`:
+Edit `/opt/remna-agent/.env`:
 ```env
 NODE_ID=fi-1
 INGEST_URL=https://stats.example.com/ingest
@@ -53,6 +53,15 @@ INGEST_TOKEN=...
 ```
 
 All supported keys are listed in `.env.example`.
+
+You can also let the installer create `.env` directly in `/opt/remna-agent` with your values:
+```bash
+sudo NODE_ID=fi-1 \
+  INGEST_URL=https://stats.example.com/ingest \
+  INGEST_TOKEN=replace_me \
+  FORCE_WRITE_ENV=1 \
+  bash install.sh
+```
 
 ## Install and start systemd
 ```bash
