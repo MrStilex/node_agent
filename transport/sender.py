@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import urllib.error
 import urllib.request
+
+
+logger = logging.getLogger(__name__)
 
 
 class Sender:
@@ -15,7 +19,7 @@ class Sender:
         if not events:
             return True
 
-        body = json.dumps({"events": events}, ensure_ascii=True).encode("utf-8")
+        body = json.dumps(events, ensure_ascii=True).encode("utf-8")
         headers = {"Content-Type": "application/json"}
         if self.collector_token:
             headers["Authorization"] = f"Bearer {self.collector_token}"
@@ -29,6 +33,16 @@ class Sender:
 
         try:
             with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+                if not 200 <= resp.status < 300:
+                    logger.warning("Ingest returned status=%s", resp.status)
                 return 200 <= resp.status < 300
+        except urllib.error.HTTPError as exc:
+            try:
+                body_text = exc.read().decode("utf-8", errors="replace")
+            except Exception:
+                body_text = "<unavailable>"
+            logger.warning("Ingest returned status=%s body=%s", exc.code, body_text[:500])
+            return False
         except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError):
+            logger.exception("Failed to send events to collector")
             return False

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -50,4 +51,17 @@ class NodeIncidentAggregator:
 
 
 def _fingerprint(incident: NodeIncident) -> str:
+    endpoint = _extract_endpoint(incident.sample)
+    if endpoint:
+        return f"{incident.incident_type}|{endpoint}"
     return incident.incident_type
+
+
+_ENDPOINT_RE = re.compile(r"\b\d+\.\d+\.\d+\.\d+:\d+\b")
+
+
+def _extract_endpoint(sample: str) -> str | None:
+    match = _ENDPOINT_RE.search(sample)
+    if not match:
+        return None
+    return match.group(0)

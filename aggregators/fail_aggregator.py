@@ -37,9 +37,12 @@ class FailAggregator:
         if self._bucket_start is None:
             self._bucket_start = self._floor_ts(event.timestamp)
 
-        src = event.src_ip or ""
-        dst = event.dst_host or ""
-        key = (event.pattern, email or "", src, dst)
+        key = (
+            event.pattern,
+            event.proto or "",
+            event.dst_host or "",
+            route_tag or "",
+        )
 
         e = self._entries.get(key)
         if e is None:
@@ -84,7 +87,7 @@ class FailAggregator:
 
         out: list[dict] = []
         window = self.fail_window_sec
-        for (pattern, _, _, _), entry in self._entries.items():
+        for (pattern, proto, dst, _), entry in self._entries.items():
             top_dst = _top1(entry.dst_counter)
             top_proto = _top1(entry.proto_counter)
             route_tag = _top1(entry.route_counter)
@@ -92,8 +95,8 @@ class FailAggregator:
             fingerprint = "|".join(
                 [
                     pattern,
-                    top_proto or "na",
-                    top_dst or "na",
+                    top_proto or proto or "na",
+                    top_dst or dst or "na",
                 ]
             )
 
