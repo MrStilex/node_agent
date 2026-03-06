@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://remnawave.local/schemas/fail_event.schema.json",
+  "title": "fail_event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_type",
+    "node_id",
+    "ts",
+    "window",
+    "window_start",
+    "window_end",
+    "pattern",
+    "fingerprint",
+    "severity",
+    "occurrences",
+    "unique_email",
+    "unique_src_ip",
+    "affected_scope",
+    "sample"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "event_type": { "type": "string", "const": "fail_event" },
+    "node_id": { "type": "string", "minLength": 1 },
+    "ts": { "type": "string", "format": "date-time" },
+    "window": { "type": "integer", "minimum": 1 },
+    "window_start": { "type": "string", "format": "date-time" },
+    "window_end": { "type": "string", "format": "date-time" },
+    "pattern": {
+      "type": "string",
+      "enum": [
+        "failed_outbound",
+        "connection_reset",
+        "invalid_request",
+        "xtls_udp_rejected",
+        "timeout",
+        "tls_error",
+        "dns_error",
+        "other"
+      ]
+    },
+    "fingerprint": { "type": "string", "minLength": 3 },
+    "severity": { "type": "string", "enum": ["info", "warn", "critical"] },
+    "occurrences": { "type": "integer", "minimum": 1 },
+    "unique_email": { "type": "integer", "minimum": 0 },
+    "unique_src_ip": { "type": "integer", "minimum": 0 },
+    "affected_scope": { "type": "string", "enum": ["user", "ip", "node"] },
+    "top_dst": { "type": ["string", "null"] },
+    "proto": { "type": ["string", "null"], "enum": ["tcp", "udp", null] },
+    "route_tag": { "type": ["string", "null"] },
+    "sample": { "type": "string", "minLength": 1 }
+  }
+}

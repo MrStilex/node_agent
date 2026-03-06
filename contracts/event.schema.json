@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://remnawave.local/schemas/event.schema.json",
+  "title": "TelemetryEvent",
+  "oneOf": [
+    { "$ref": "node_heartbeat.schema.json" },
+    { "$ref": "node_summary.schema.json" },
+    { "$ref": "fail_event.schema.json" },
+    { "$ref": "reconnect_suspect.schema.json" },
+    { "$ref": "node_incident.schema.json" }
+  ]
+}

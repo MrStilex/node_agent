@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://remnawave.local/schemas/node_summary.schema.json",
+  "title": "node_summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_type",
+    "node_id",
+    "window_start",
+    "window_end",
+    "access_total",
+    "accepted_total",
+    "rejected_total",
+    "unique_email",
+    "unique_src_ip",
+    "tcp_total",
+    "udp_total",
+    "top_dst_domains",
+    "top_route_tags",
+    "route_split",
+    "reconnect_suspects_count",
+    "fail_patterns_count",
+    "fail_occurrences_total"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "event_type": { "type": "string", "const": "node_summary" },
+    "node_id": { "type": "string", "minLength": 1 },
+    "window_start": { "type": "string", "format": "date-time" },
+    "window_end": { "type": "string", "format": "date-time" },
+    "access_total": { "type": "integer", "minimum": 0 },
+    "accepted_total": { "type": "integer", "minimum": 0 },
+    "rejected_total": { "type": "integer", "minimum": 0 },
+    "unique_email": { "type": "integer", "minimum": 0 },
+    "unique_src_ip": { "type": "integer", "minimum": 0 },
+    "tcp_total": { "type": "integer", "minimum": 0 },
+    "udp_total": { "type": "integer", "minimum": 0 },
+    "top_dst_domains": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "prefixItems": [{ "type": "string" }, { "type": "integer", "minimum": 0 }]
+      }
+    },
+    "top_route_tags": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "prefixItems": [{ "type": "string" }, { "type": "integer", "minimum": 0 }]
+      }
+    },
+    "route_split": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["DIRECT", "BLOCK", "ru-reality2", "OTHER"],
+      "properties": {
+        "DIRECT": { "type": "integer", "minimum": 0 },
+        "BLOCK": { "type": "integer", "minimum": 0 },
+        "ru-reality2": { "type": "integer", "minimum": 0 },
+        "OTHER": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "reconnect_suspects_count": { "type": "integer", "minimum": 0 },
+    "fail_patterns_count": { "type": "integer", "minimum": 0 },
+    "fail_occurrences_total": { "type": "integer", "minimum": 0 }
+  }
+}

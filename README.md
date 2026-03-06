@@ -1,118 +1,71 @@
-# remna-agent
+# Node-Agent Payload Contract
 
-Problem-first telemetry agent for Remnawave/Xray nodes.
+## Purpose
+This document defines the strict telemetry contract between `node-agent` and Collector for Remnawave/Xray monitoring.
 
-## Install
+## Protocol Versioning
+Every event MUST include:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/MrStilex/node_agent/main/install.sh | \
-sudo NODE_ID=fi-1 \
-INGEST_URL=https://logs.lalala001.ru/ingest \
-INGEST_TOKEN=replace_me \
-FORCE_WRITE_ENV=1 \
-bash
+```json
+"schema_version": "1.0"
 ```
 
-What the installer does:
+Rules:
+- `1.x`: additive-compatible changes only (new optional fields, new enum values only if Collector allows them).
+- `2.0+`: breaking changes (rename/remove/type changes) allowed only with coordinated Collector + UI rollout.
+- Collector MUST reject events with missing `schema_version`.
 
-- installs files into `/opt/remna-agent`
-- creates `/opt/remna-agent/.env`
-- creates `/opt/remna-agent/.venv`
-- creates `/opt/remna-agent/spool`
-- installs `/etc/systemd/system/remna-agent.service`
-- configures log read access for `/var/log/remnanode/*.log`
+## Transport Envelope
+Agent sends batches to Collector as:
 
-## Paths
-
-- app directory: `/opt/remna-agent`
-- config: `/opt/remna-agent/.env`
-- spool: `/opt/remna-agent/spool`
-- service: `/etc/systemd/system/remna-agent.service`
-
-## Configuration
-
-Main settings are stored in `/opt/remna-agent/.env`.
-
-Minimal required values:
-
-```env
-NODE_ID=fi-1
-INGEST_URL=https://logs.lalala001.ru/ingest
-INGEST_TOKEN=replace_me
+```json
+{
+  "events": [
+    { "schema_version": "1.0", "event_type": "...", "...": "..." }
+  ]
+}
 ```
 
-After changing config:
+Schema:
+- `contracts/collector_ingest.schema.json`
 
-```bash
-sudo systemctl restart remna-agent
-```
+## Event Types
+Supported `event_type` values:
+- `node_heartbeat`
+- `node_summary`
+- `fail_event`
+- `reconnect_suspect`
+- `node_incident`
 
-## systemd
+Master event schema:
+- `contracts/event.schema.json`
 
-Start:
+## Event Schemas
+- `contracts/node_heartbeat.schema.json`
+- `contracts/node_summary.schema.json`
+- `contracts/fail_event.schema.json`
+- `contracts/reconnect_suspect.schema.json`
+- `contracts/node_incident.schema.json`
 
-```bash
-sudo systemctl start remna-agent
-```
+## Semantics Notes
+- Raw log lines MUST NOT be sent as standalone events.
+- `received request` and `connection opened` MUST be filtered and never emitted.
+- `fail_event` MUST be aggregated by windows (`window_start/window_end`) and deduplicated.
+- `fail_event.affected_scope` semantics:
+  - `user`: at least one correlated email
+  - `ip`: no email, but at least one source IP
+  - `node`: no user/IP binding
+- `node_summary.route_split` is mandatory and used by analytics/UI for route health.
 
-Stop:
+## Required Compatibility for UI/Collector
+Collector and Telegram UI rely on these fields and MUST treat them as contract-critical:
+- `schema_version`, `event_type`, `node_id`
+- All required fields from the corresponding JSON Schema
+- `fail_event.fingerprint`
+- `node_incident.fingerprint`
 
-```bash
-sudo systemctl stop remna-agent
-```
+## Validation Recommendation
+Collector should validate each incoming event against `contracts/event.schema.json` and reject invalid payloads with explicit error details.
 
-Restart:
-
-```bash
-sudo systemctl restart remna-agent
-```
-
-Enable on boot:
-
-```bash
-sudo systemctl enable remna-agent
-```
-
-Disable on boot:
-
-```bash
-sudo systemctl disable remna-agent
-```
-
-Status:
-
-```bash
-sudo systemctl status remna-agent --no-pager
-```
-
-## Logs
-
-Agent logs:
-
-```bash
-journalctl -u remna-agent -f
-```
-
-Recent agent logs:
-
-```bash
-journalctl -u remna-agent --no-pager -n 100
-```
-
-Xray logs used by the agent:
-
-- `/var/log/remnanode/access.log`
-- `/var/log/remnanode/error.log`
-
-## Update
-
-Run the installer again:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/MrStilex/node_agent/main/install.sh | \
-sudo NODE_ID=fi-1 \
-INGEST_URL=https://logs.lalala001.ru/ingest \
-INGEST_TOKEN=replace_me \
-FORCE_WRITE_ENV=1 \
-bash
-```
+## Current Contract Version
+- `schema_version`: `1.0`

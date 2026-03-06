@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://remnawave.local/schemas/node_incident.schema.json",
+  "title": "node_incident",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_type",
+    "node_id",
+    "ts",
+    "incident_type",
+    "severity",
+    "fingerprint",
+    "occurrences",
+    "first_seen",
+    "last_seen",
+    "sample"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "event_type": { "type": "string", "const": "node_incident" },
+    "node_id": { "type": "string", "minLength": 1 },
+    "ts": { "type": "string", "format": "date-time" },
+    "incident_type": {
+      "type": "string",
+      "enum": [
+        "spawn_error",
+        "rn_001",
+        "stats_econnrefused",
+        "process_crash",
+        "container_restart"
+      ]
+    },
+    "severity": { "type": "string", "enum": ["warn", "critical"] },
+    "fingerprint": { "type": "string", "minLength": 3 },
+    "occurrences": { "type": "integer", "minimum": 1 },
+    "first_seen": { "type": "string", "format": "date-time" },
+    "last_seen": { "type": "string", "format": "date-time" },
+    "sample": { "type": "string", "minLength": 1 }
+  }
+}

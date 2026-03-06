@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://remnawave.local/schemas/node_heartbeat.schema.json",
+  "title": "node_heartbeat",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_type",
+    "node_id",
+    "ts",
+    "agent_version",
+    "xray_version",
+    "container_uptime_sec",
+    "cpu_usage",
+    "mem_usage",
+    "log_lag_sec",
+    "status"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "event_type": { "type": "string", "const": "node_heartbeat" },
+    "node_id": { "type": "string", "minLength": 1 },
+    "ts": { "type": "string", "format": "date-time" },
+    "agent_version": { "type": "string" },
+    "xray_version": { "type": "string" },
+    "container_uptime_sec": { "type": "integer", "minimum": 0 },
+    "cpu_usage": { "type": "number", "minimum": 0 },
+    "mem_usage": { "type": "number", "minimum": 0, "maximum": 100 },
+    "log_lag_sec": { "type": "integer", "minimum": 0 },
+    "status": { "type": "string", "enum": ["ok", "degraded", "down"] }
+  }
+}
